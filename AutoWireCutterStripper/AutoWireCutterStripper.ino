@@ -5,32 +5,48 @@
 #include <SPI.h>
 #include <Wire.h>
 #include <Adafruit_GFX.h>
-#include <Adafruit_SH110X.h>
+#include "ST7920_GFX_Library.h"
+
+//#include <Adafruit_SH110X.h>
+#define SH110X_BLACK 0   ///< Draw 'off' pixels
+#define SH110X_WHITE 1   ///< Draw 'on' pixels
 
 #define motorInterfaceType 1
-#define i2c_Address 0x3c
+//#define i2c_Address 0x3c
+
+#define Y_ENABLE_PIN 14
+#define Z_ENABLE_PIN 26
+
+//z axis
+const int LINMOT_STEPPERS_STEP_PIN = 3;  // LINMOT: Linear motion
+const int LINMOT_STEPPERS_DIR_PIN = 2;
+
+//y axis
+const int EXTRUDER_STEPPER_STEP_PIN = 22;  // The stepper that moves the wire in the extruder.
+const int EXTRUDER_STEPPER_DIR_PIN = 23;
 
 
-const int LINMOT_STEPPERS_STEP_PIN = 19;  // LINMOT: Linear motion
-const int LINMOT_STEPPERS_DIR_PIN = 18;
+const int ENCODER_DT_PIN = 30;
+const int ENCODER_CLK_PIN = 29;
 
-const int EXTRUDER_STEPPER_STEP_PIN = 16;  // The stepper that moves the wire in the extruder.
-const int EXTRUDER_STEPPER_DIR_PIN = 17;
-
-const int ENCODER_DT_PIN = 0;
-const int ENCODER_CLK_PIN = 23;
-const int ENCODER_BTN_PIN = 4;
+const int ENCODER_BTN_PIN = 28;
 
 // For calibration only. The two buttons are used to move the top blade up and down manually.
 // Once calibrated, you can remove the buttons from the circuit.
-const int BTN1_PIN = 27;
-const int BTN2_PIN = 26;
+const int BTN1_PIN = 10;
+const int BTN2_PIN = 11;
+
+#define BEEPER_PIN  27
+
+
 
 const int LINMOT_STEPPERS_STEPS = 1;  // Steppers step(s) movement at a time.
 const int EXTRUDER_STEPPER_STEPS = 1;
 
-const int LINMOT_STEPPERS_SPEED = 2000;
+const int LINMOT_STEPPERS_SPEED = 5000;
 const int EXTRUDER_STEPPER_SPEED = 2000;
+
+
 
 
 const int SCREEN_WIDTH = 128;  // OLED display width, in pixels
@@ -67,8 +83,10 @@ Stepper extruderStepper(200, EXTRUDER_STEPPER_DIR_PIN, EXTRUDER_STEPPER_STEP_PIN
 
 Encoder encoder(ENCODER_DT_PIN, ENCODER_CLK_PIN);
 
-Adafruit_SH1106G display = Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+//Adafruit_SH1106G display = Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+#define DISPLAY_CS_PIN 17
 
+ST7920 display(DISPLAY_CS_PIN);
 
 int linMotSteppersCurrStep = 0;  // Current position/step of the stepper motor.
 
@@ -93,9 +111,9 @@ Component comps[] = { {0, 20, 40, 20, 0, 0, 0, 0},
 int numOfComps = sizeof(comps) / sizeof(comps[0]);
 
 
-int encoderPos;  // Current position/value of the encoder.
-int encoderLastPos;  // For OLED drawing.
-int encoderLastPosMain;  // For main loop.
+long encoderPos;  // Current position/value of the encoder.
+long encoderLastPos;  // For OLED drawing.
+long encoderLastPosMain;  // For main loop.
 
 boolean encBtnState = false;
 boolean encBtnPrevState = false;  // For OLED drawing.
@@ -104,6 +122,17 @@ boolean encBtnPrevStateMain = false;  // For main loop.
 
 
 void setup() {
+    Serial.begin(9600);
+    Serial.println("begin");
+
+    pinMode(Y_ENABLE_PIN, OUTPUT);
+    digitalWrite(Y_ENABLE_PIN, LOW);
+
+    pinMode(Z_ENABLE_PIN, OUTPUT);
+    digitalWrite(Z_ENABLE_PIN, LOW);
+
+    Serial.println("steppers enabled?");
+
     linMotSteppers.setSpeed(LINMOT_STEPPERS_SPEED);
     extruderStepper.setSpeed(EXTRUDER_STEPPER_SPEED);
 
@@ -112,17 +141,21 @@ void setup() {
     pinMode(BTN1_PIN, INPUT_PULLUP);
     pinMode(BTN2_PIN, INPUT_PULLUP);
 
-    display.begin(i2c_Address, true);
+    pinMode(BEEPER_PIN, OUTPUT);
+    digitalWrite(BEEPER_PIN, LOW);    
+
+    display.begin();
 }
 
 
 void loop() {
-    int encPos = getEncoderPos();
+    long encPos = getEncoderPos();
     boolean encBtnState = digitalRead(ENCODER_BTN_PIN);
 
     // Only update OLED screen if encoder is moved or pressed.
     if ((encPos != encoderLastPosMain) || (encBtnState != encBtnPrevStateMain)) {
         handleOLEDDisplay();
+        Serial.print(encPos);
     }
 
     if (comps[START_BTN_INDEX].selected) {
@@ -194,7 +227,7 @@ void handleAllComponents() {
 
                 comp.selected = true;
 
-                int newEncPos = getEncoderPos();
+                long newEncPos = getEncoderPos();
                 comp.value = newEncPos;
 
             }
@@ -293,7 +326,7 @@ void moveWire(int steps) {
 }
 
 
-int getEncoderPos() {
-    int encPos = encoder.read() / 4;
+long getEncoderPos() {
+    long encPos = encoder.read() / 4;
     return encPos;
 }
