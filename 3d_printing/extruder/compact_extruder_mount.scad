@@ -34,7 +34,7 @@ m3_major = 2.85*1;
 m3_radius = 3.2/2;//m3_major / 2 + extra_radius; //for m3 clearance holes
 m3_wide_radius = 3.3/2;//m3_major / 2 + extra_radius + 0.2;
 
-echo(2*m3_radius);
+// echo(2*m3_radius);
 
 // Diameter of metric 3mm hexnut screw head
 m3_head_radius = 3 + extra_radius;
@@ -100,7 +100,9 @@ outlet_dia = 8; // [5:M5, 6:M6, 7:M7, 8:M8, 9:M9, 10:M10]
 
 
 //length of the outlet guide tube
-outlet_len = 42;
+outlet_len = 42 + 6.5 - 1;
+//output
+outlet_base_len = 42;
 
 
 /* [Filament Diameter] */
@@ -353,14 +355,20 @@ module filament_tunnel()
                     // outlet pushfitting housing
                     translate([0, length / 2 - 8 + epsilon, -height / 2 + filament_offset[2] - base_height])
                     rotate([-90, 0, 0])
-                    cylinder(r = outlet_dia/2 + 1.5, h = outlet_len);
+                    cylinder(r = outlet_dia/2 + 1.5, h = outlet_base_len);
 
 
                     // hull() {
                     translate([0, length / 2 + epsilon, -height / 2 + filament_offset[2] - base_height])
-                        rotate([-90, 0, 0]) cylinder(r = outlet_dia/2 + 1.5, h = outlet_len);
+                        rotate([-90, 0, 0]) cylinder(r = outlet_dia/2 + 1.5, h = outlet_base_len);
+
+                    // translate([0, outlet_base_len + length / 2 + epsilon, -height / 2 + filament_offset[2] - base_height])
+                    //     rotate([-90, 0, 0]) cylinder(r1 = outlet_dia/2 + 1.5, d2=3, h = outlet_len - outlet_base_len);
+
+
+
                     translate([-outlet_dia/2, length / 2 + epsilon,  - height/2 - base_height])
-                        cube([outlet_dia + 3 - 3, outlet_len, outlet_dia + 3]);
+                        cube([outlet_dia + 3 - 3, outlet_base_len, outlet_dia + 3]);
                     // }
 
                      // echo(drive_gear_length - drive_gear_hobbed_offset - 2.5 - height / 2);
@@ -385,6 +393,10 @@ module filament_tunnel()
 
 
                 //adcurtin
+
+                // translate([-10, 3+outlet_base_len + length / 2 + epsilon, -height / 2 + filament_offset[2] - base_height])
+                //         cube(20);// rotate([-90, 0, 0]) cylinder(r1 = outlet_dia/2 + 1.5, d2=3, h = outlet_len - outlet_base_len);
+
 
                 //bottom tensioner bolt hole
                 translate([-4, -nema17_width / 2 + 4, .25 - tensioner_bolt_gap/2])
@@ -662,7 +674,7 @@ module idler_608_v2()
 
 
 
-    echo(screw_bushing_height);
+    // echo(screw_bushing_height);
 
 	// base plate
 	translate([0, 0, height / 2 + 0])
@@ -796,7 +808,7 @@ module idler_608_v2_splitted()
 {
     idler_height = filament_offset[2] - base_height + 4 - idler_bushing_h + top_height;
 
-    echo(idler_height);
+    // echo(idler_height);
 
 	intersection()
 	{

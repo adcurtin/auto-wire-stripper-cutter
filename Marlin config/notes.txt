@@ -1,0 +1,84 @@
+
+extruder axis - connected to original y axis - swap with E0 axis pin definition? just use e0 axis
+extruder axis steps per mm - 
+
+
+
+z axis - connected to original z axis
+z axis endstop - minimum, connected to z endstop
+
+z axis endstop sets minimum, allow jog 1mm past?
+live adjust z? use this to adjust z home to be spot for stripping? or cut spot? or don't use?
+
+z axis steps per mm - ?
+
+
+
+lcd for melzi
+
+
+
+
+shorter machine name - done
+
+invert x and y endstops, so they're always homed, to fix homing - or just disable the endstops? and disable homing direction - done
+
+
+
+
+
+
+todo:
+
+allow Z to move past endstop a little? - how? MANUAL_[XYZ]_HOME_POS - try more - 1.6 good
+longer z axis - try 90mm? try 110 then dial it back , trying 140… 135 good
+
+
+
+
+
+check out babystepping? for live adjust z           
+
+
+
+calibrate steps per mm on extruder          
+    etrudeded 100mm, got 105mm. changed to 95mm   
+
+
+
+more extruder speed
+    try with gcode hooked up to computer
+    increased manual feedrate
+
+
+
+
+test running gcode from SD
+
+
+
+
+
+NTH:
+
+custom menu (menus?)
+    check out extensible UI?
+
+different home / status screen - custom status bitmap
+
+bootscreen
+
+
+custom predefined gcode for different lengths / wire sizes
+
+
+
+disable x and y axes?
+    no can do
+
+
+
+
+
+
+
