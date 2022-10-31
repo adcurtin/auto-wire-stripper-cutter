@@ -25,7 +25,7 @@ spool_side_th = 4.8;
 
 
 container_h = 36;
-container_l = 80;
+container_l = 120;
 container_w = 42.8;
 container_th = 2;
 container_radius = 8;
@@ -121,7 +121,87 @@ base_screwhole_d = 4.3;
 
 
 
+linear_rod_d = 8;
+linear_rod_l = 175;
+linear_rod_gap = 34;
 
+linear_bearing_d = 15;
+linear_bearing_l = 17;
+
+linear_slider_d = 15;
+linear_slider_l = 40;
+
+linear_slider_base_th = 5.3;
+linear_slider_base_d = 32;
+linear_slider_base_w = 21;
+
+// linear_slider_screwhead_d = 5.6;
+linear_slider_screw_d = screwhole_d;
+linear_slider_screw_gap = 23.75;
+
+linear_slider_nut_dp = 12;
+
+
+
+translate([0, linear_rod_gap/2, 0]) linear_rod();
+translate([0, -linear_rod_gap/2, 0]) linear_rod();
+
+translate([0, linear_rod_gap/2, 55]) linear_slider(0);
+translate([0, -linear_rod_gap/2, 55]) linear_slider(0);
+
+
+module linear_slider(cutout=0) {
+    difference() {
+        union() {
+            intersection() {
+                cylinder(h=linear_slider_base_th, d=linear_slider_base_d);
+                translate([-linear_slider_base_d/2, -linear_slider_base_w/2, 0]) cube([linear_slider_base_d, linear_slider_base_w, linear_slider_base_th]);
+            }
+            cylinder(h=linear_slider_base_th + linear_slider_l, d=linear_slider_d);
+        }
+        translate([0, 0, -1]) linear_rod();
+
+        translate([linear_slider_screw_gap/2, 0, -1]) cylinder(h=linear_slider_base_th + 2, d=linear_slider_screw_d);
+        translate([-linear_slider_screw_gap/2, 0, -1]) cylinder(h=linear_slider_base_th + 2, d=linear_slider_screw_d);
+
+    }
+
+    if(cutout) {
+        translate([linear_slider_screw_gap/2, 0, -1]) cylinder(h=linear_slider_base_th + 2 + cutout, d=linear_slider_screw_d);
+        translate([-linear_slider_screw_gap/2, 0, -1]) cylinder(h=linear_slider_base_th + 2 + cutout, d=linear_slider_screw_d);
+
+        // nut slots
+        hull() {
+            translate([linear_slider_screw_gap/2, 0, linear_slider_nut_dp]) M3_hex_nut();
+            translate([linear_slider_screw_gap, 0, linear_slider_nut_dp]) M3_hex_nut();
+        }
+
+        hull() {
+            translate([-linear_slider_screw_gap/2, 0, linear_slider_nut_dp]) M3_hex_nut();
+            translate([-linear_slider_screw_gap, 0, linear_slider_nut_dp]) M3_hex_nut();
+        }
+
+
+
+    }
+
+
+
+
+}
+
+
+module linear_bearing() {
+    difference() {
+        cylinder(h=linear_bearing_l, d=linear_bearing_d);
+        translate([0, 0, -1]) linear_rod();
+    }
+}
+
+
+module linear_rod() {
+    cylinder(h=linear_rod_l, d=linear_rod_d);
+}
 
 
 
@@ -444,7 +524,7 @@ module spool_cap() {
 
 /* #################################################### */
 
-// translate([0, 0, 91 + 20]) z_axis_attachment();
+translate([0, 0, 91 + 20]) z_axis_attachment();
 
 // z_axis_endstop_mount();
 
@@ -464,11 +544,11 @@ bottom_blade_holder();
 
 
 
-// translate([136, -27, 0]){
-//     spool_cylinder();
-//     spool_cap();
-//     spool_holder_base();
-// }
+translate([136, -27, 0]){
+    spool_cylinder();
+    spool_cap();
+    spool_holder_base();
+}
 
 include <extruder/compact_extruder_mount.scad>
 translate([71.15, -5, 40 + 1.2]) rotate([0,0,90]) extruder_combined(); 
@@ -482,11 +562,11 @@ translate([71.15, -5, 40 + 1.2]) rotate([0,0,90]) extruder_combined();
  // translate([0, 0, 4]) z_axis_motor_mount();
 
 
-// translate([0, 1.45, 36 + 11.72])
-// import("extruderStepper_housing.3mf");
+translate([0, 1.45, 36 + 11.72])
+import("extruderStepper_housing.3mf");
 
-// translate([0, 0, 36 + 11.72])
-// import("linearMotion_motorsHousing.3mf");
+translate([0, 0, 36 + 11.72])
+import("linearMotion_motorsHousing.3mf");
 
 
 /******************************

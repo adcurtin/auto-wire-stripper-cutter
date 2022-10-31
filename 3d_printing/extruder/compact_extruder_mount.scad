@@ -1,7 +1,7 @@
 // Avoid openscad artefacts in preview
 epsilon = 0.01 * 1;
 
-$fn=100;
+// $fn=100;
 
 // Which one would you like to see?
 part = "nah"; // [first:Main Part,second:Idler,both:Main Part and Idler]
