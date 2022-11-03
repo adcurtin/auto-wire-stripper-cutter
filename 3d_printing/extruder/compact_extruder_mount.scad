@@ -1,10 +1,10 @@
 // Avoid openscad artefacts in preview
 epsilon = 0.01 * 1;
 
-// $fn=100;
+$fn=100;
 
 // Which one would you like to see?
-part = "nah"; // [first:Main Part,second:Idler,both:Main Part and Idler]
+part = "both"; // [first:Main Part,second:Idler,both:Main Part and Idler]
 
 
 
@@ -40,7 +40,7 @@ m3_wide_radius = 3.3/2;//m3_major / 2 + extra_radius + 0.2;
 m3_head_radius = 3 + extra_radius;
 
 // Height of base (default: 5mm)
-base_height = 5*1;        // [2:0.1:10]
+base_height = 5*1 + 1.5;        // [2:0.1:10]
 
 /* [Drive gear parameters] */
 // Outer diameter of drive gear
@@ -103,6 +103,7 @@ outlet_dia = 8; // [5:M5, 6:M6, 7:M7, 8:M8, 9:M9, 10:M10]
 outlet_len = 42 + 6.5 - 1;
 //output
 outlet_base_len = 42;
+outlet_tip_len = 6.5;
 
 
 /* [Filament Diameter] */
@@ -152,16 +153,16 @@ module nema17_mount()
                 translate([nema17_hole_offsets[3][0], nema17_hole_offsets[3][1], base_height/2]) cylinder(h=idler_bushing_h, d=idler_bushing_d);
             }
 
-        translate([filament_diameter + 1 + filament_offset[0], -nema17_width / 2 + 4, base_height])
-        hull() {
-            rotate([0, 90, 0]) cylinder(r = 3.15 + 2.5 * extra_radius - .1, h = 2.5 + 3 * extra_radius, center = true, $fn = 6);
-            translate([0, 0, -20]) rotate([0, 90, 0]) cylinder(r = 3.15 + 2.5 * extra_radius - .1, h = 2.5 + 3 * extra_radius, center = true, $fn = 6);
+        // translate([filament_diameter + 1 + filament_offset[0], -nema17_width / 2 + 4, base_height])
+        // hull() {
+        //     rotate([0, 90, 0]) cylinder(r = 3.15 + 2.5 * extra_radius - .1, h = 2.5 + 3 * extra_radius, center = true, $fn = 6);
+        //     translate([0, 0, -20]) rotate([0, 90, 0]) cylinder(r = 3.15 + 2.5 * extra_radius - .1, h = 2.5 + 3 * extra_radius, center = true, $fn = 6);
         
-        }
+        // }
 
 		// center hole
 		translate([0, 0, -epsilon]	)
-			cylinder(r = 11.25 + extra_radius, h = base_height + 2 * epsilon, $fn = 64);
+			cylinder(r = 6 + extra_radius, h = base_height + 2 * epsilon, $fn = 64);
 
 		// axle hole
 		translate([0, 0, -epsilon])
@@ -362,8 +363,13 @@ module filament_tunnel()
                     translate([0, length / 2 + epsilon, -height / 2 + filament_offset[2] - base_height])
                         rotate([-90, 0, 0]) cylinder(r = outlet_dia/2 + 1.5, h = outlet_base_len);
 
+                    translate([0, length / 2 + epsilon + outlet_base_len, -height / 2 + filament_offset[2] - base_height])
+                        rotate([-90, 0, 0]) cylinder(r1 = outlet_dia/2 + 1.5, r2= filament_diameter/2 +1, h = outlet_tip_len);
+
                     // translate([0, outlet_base_len + length / 2 + epsilon, -height / 2 + filament_offset[2] - base_height])
                     //     rotate([-90, 0, 0]) cylinder(r1 = outlet_dia/2 + 1.5, d2=3, h = outlet_len - outlet_base_len);
+
+
 
 
 
@@ -383,7 +389,13 @@ module filament_tunnel()
 
                 // middle cutout for drive gear
                 translate([-filament_offset[0], 0, -height/2 - epsilon])
-                    cylinder(r = 11.25 + extra_radius, h = height + top_height +  2 * epsilon, center = false, $fn = 64);
+                    cylinder(r = 6 + extra_radius, h = height + top_height +  2 * epsilon, center = false, $fn = 64);
+
+                // middle cutout cube
+                translate([-filament_offset[0], -10/2, -height/2 - epsilon])
+                    cube([10, 10, height + top_height +  2 * epsilon]);
+
+
 
                 // middle cutout for idler
                 translate([11 + filament_diameter / 2, 0, -height/2 - epsilon])
@@ -407,10 +419,10 @@ module filament_tunnel()
                 //bottom nut slot
                 // translate([filament_diameter + 3, -nema17_width / 2 + 4, 5 - tensioner_bolt_gap/2])
                 //     cube([2.5 + 3 * extra_radius, 5.5 + 2.5 * extra_radius, 10 + tensioner_bolt_gap/2], center = true);
-                translate([filament_diameter + 1, -nema17_width / 2 + 4, -tensioner_bolt_gap/2])
+                translate([filament_diameter + 2, -nema17_width / 2 + 4, -tensioner_bolt_gap/2])
                 hull() {
-                    rotate([0, 90, 0]) cylinder(r = 3.15 + 2.5 * extra_radius - 0.25, h = 2.5 + 3 * extra_radius, center = true, $fn = 6);
-                    translate([0, 0, -20]) rotate([0, 90, 0]) cylinder(r = 3.15 + 2.5 * extra_radius - .1, h = 2.5 + 3 * extra_radius, center = true, $fn = 6);
+                    rotate([0, 90, 0]) rotate([0, 0, 90]) cylinder(r = 3.15 + 2.5 * extra_radius - 0.25, h = 2.5 + 3 * extra_radius, center = true, $fn = 6);
+                    translate([0, -20, 0]) rotate([0, 90, 0]) rotate([0, 0, 90]) cylinder(r = 3.15 + 2.5 * extra_radius - .1, h = 2.5 + 3 * extra_radius, center = true, $fn = 6);
                 
                 }
 
@@ -473,7 +485,7 @@ module filament_tunnel()
                 }
 
                 // funnnel outlet inside
-                translate([0, 12, -height / 2 + filament_offset[2] - base_height])
+                translate([0, 12 -3.01, -height / 2 + filament_offset[2] - base_height])
                     rotate([90, 0, 0])
                         cylinder(r1 = filament_diameter / 2, r2 = filament_diameter / 2 + 1.25,
                             h = 8, center = true, $fn = 50);
@@ -499,6 +511,20 @@ module filament_tunnel()
                 translate(nema17_hole_offsets[2] - [filament_offset[0], 0, height / 2 + 1.5])
                     sphere(r = m3_head_radius, $fn = 50);
             }
+
+            //hinge support
+            // translate([15.5 - filament_offset[0], 15.5, 0])
+            // {
+            //     // cylinder(r = m3_wide_radius, h = height * 4, center = true, $fn = 50);
+            //     difference() {
+            //         translate([0, 0, height / 2]) hull(){
+            //             cylinder(r = m3_head_radius + 1.5, h = top_height);
+            //             translate([-6.5,-m3_head_radius -1.5 ,0]) cube([1, 2*m3_head_radius + 3, top_height]);
+            //         }
+
+            //         cylinder(r = m3_head_radius, h = top_height + height);
+            //     }
+            // }
 
             if(outlet_thread){
                 // add outlet thread
@@ -545,7 +571,7 @@ module bearing_608zz()
 
 //fix hinge screw
 // idler with 608 bearing, simple version
-module idler_608_v1()
+module idler_608_v1(cutout=0)
 {
 	// settings
 	width = nema17_width;
@@ -648,14 +674,14 @@ module idler_608_v1()
 
 	}
 
-	translate([offset + 11 - pre_tension, 0, filament_offset[2] - base_height])
+	if(cutout==0) translate([offset + 11 - pre_tension, 0, filament_offset[2] - base_height])
 		%bearing_608zz();
 }
 
 
 //fix hinge screw, spring screws, and height
 // new idler with 608 bearing
-module idler_608_v2()
+module idler_608_v2(cutout=0)
 {
 	// settings
 	width = nema17_width;
@@ -778,6 +804,20 @@ module idler_608_v2()
 				cylinder(r = m3_head_radius, h = height + epsilon, $fn = 50);
 		}
 
+        //hinge support
+        // translate([15.5, 15.5, 0])
+        //     {
+        //         // cylinder(r = m3_wide_radius, h = height * 4, center = true, $fn = 50);
+        //         #difference() {
+        //             translate([0, 0, height / 2]) hull(){
+        //                 cylinder(r = m3_head_radius + 2, h = top_height + height);
+        //                 translate([-6.5,-m3_head_radius -3 ,0]) cube([1, 2*m3_head_radius + 15, top_height + height]);
+        //             }
+
+        //             // cylinder(r = m3_head_radius, h = top_height + height);
+        //         }
+        //     }
+
         // outlet pushfitting housing
         translate([offset, width/2 + epsilon, 1.5])
         rotate([90, 0, 0])
@@ -797,7 +837,7 @@ module idler_608_v2()
         }
 	}
 
-	translate([offset + 11 - pre_tension, 0, filament_offset[2] - base_height])
+	if(cutout==0) translate([offset + 11 - pre_tension, 0, filament_offset[2] - base_height])
 		%bearing_608zz();
 }
 
@@ -828,7 +868,7 @@ module idler_608_v2_splitted()
 
 
 // compose all parts
-module compact_extruder()
+module compact_extruder(cutout=0)
 {
 	// motor plate
 	nema17_mount();
@@ -852,7 +892,7 @@ module compact_extruder()
 		filament_tunnel();
 
 	// drive gear
-	color("grey")
+	if(cutout==0) color("grey")
 		%translate([0, 0, base_height - 2.5])
 			drive_gear();
 
@@ -925,19 +965,18 @@ module th_in_pt(rt,p,s,sg,thr,h,sh)
 			[1,4,5],[1,5,2]]);	// top face
 }
 
-module extruder_combined() {
+module extruder_combined(cutout=1) {
     // rotate([0,-90,180])
     {
-       compact_extruder();
+       compact_extruder(cutout);
 
     if(idler_version == 2){
-    translate([0, 0, base_height])
-        idler_608_v2();
+    translate([0, 0, base_height]) idler_608_v2(cutout);
     }
     else
     {
      translate([0, 0, base_height])
-            idler_608_v1();
+            idler_608_v1(cutout);
     }
 }
 }

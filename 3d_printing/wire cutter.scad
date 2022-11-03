@@ -1,4 +1,14 @@
 include <OpenSCAD-common.scad>
+use <extruder/compact_extruder_mount.scad>
+use <wire straightener/wire straightener.scad>
+
+
+//animation
+anim = 2*($t < 0.5 ? $t : (1-$t));
+
+anim_height = 20*anim;
+
+// echo(anim_height);
 
 $fn=150;
 
@@ -78,11 +88,11 @@ blade_stepper_gap = 92.265;
 
 
 //blade holder
-top_blade_holder_w = 40.4;
+top_blade_holder_w = 65;
 top_blade_holder_r = 4;
-top_blade_holder_l = 21.8;
+top_blade_holder_l = 22;
 top_blade_holder_h = 3.25;
-top_blade_holder_screw_gap = 26.8;
+top_blade_holder_screw_gap = 57;
 
 
 bottom_blade_holder_w = 43;
@@ -95,7 +105,7 @@ bottom_blade_holder_screw_x = 15.4;
 
 blade_holder_w  = 13.6;
 blade_holder_l  = 8;
-blade_holder_h  = 15;
+blade_holder_h  = 15 + .8;
 
 //blades
 blade_w = 7;
@@ -112,7 +122,9 @@ blade_notch_o = top_blade_h - 4.6;
 
 blade_y_offset = 49 + blade_cut;
 blade_overcut = 1;
-blade_overlap = 0.0;
+
+blade_overlap = .1;
+blade_over_angle = 4;
 
 
 blade_holder_screw_d = 2.4;
@@ -121,7 +133,7 @@ base_screwhole_d = 4.3;
 
 
 
-linear_rod_d = 8;
+linear_rod_d = 8.1;
 linear_rod_l = 175;
 linear_rod_gap = 34;
 
@@ -139,15 +151,12 @@ linear_slider_base_w = 21;
 linear_slider_screw_d = screwhole_d;
 linear_slider_screw_gap = 23.75;
 
-linear_slider_nut_dp = 12;
+linear_slider_nut_dp = 10;
 
 
 
-translate([0, linear_rod_gap/2, 0]) linear_rod();
-translate([0, -linear_rod_gap/2, 0]) linear_rod();
+mounting_board_th = 18;
 
-translate([0, linear_rod_gap/2, 55]) linear_slider(0);
-translate([0, -linear_rod_gap/2, 55]) linear_slider(0);
 
 
 module linear_slider(cutout=0) {
@@ -159,7 +168,7 @@ module linear_slider(cutout=0) {
             }
             cylinder(h=linear_slider_base_th + linear_slider_l, d=linear_slider_d);
         }
-        translate([0, 0, -1]) linear_rod();
+        if(cutout==0) translate([0, 0, -1]) linear_rod();
 
         translate([linear_slider_screw_gap/2, 0, -1]) cylinder(h=linear_slider_base_th + 2, d=linear_slider_screw_d);
         translate([-linear_slider_screw_gap/2, 0, -1]) cylinder(h=linear_slider_base_th + 2, d=linear_slider_screw_d);
@@ -167,8 +176,8 @@ module linear_slider(cutout=0) {
     }
 
     if(cutout) {
-        translate([linear_slider_screw_gap/2, 0, -1]) cylinder(h=linear_slider_base_th + 2 + cutout, d=linear_slider_screw_d);
-        translate([-linear_slider_screw_gap/2, 0, -1]) cylinder(h=linear_slider_base_th + 2 + cutout, d=linear_slider_screw_d);
+        translate([linear_slider_screw_gap/2, 0, -1]) cylinder(h=linear_slider_base_th + linear_slider_nut_dp + 0.5, d=linear_slider_screw_d);
+        translate([-linear_slider_screw_gap/2, 0, -1]) cylinder(h=linear_slider_base_th + linear_slider_nut_dp + 0.5, d=linear_slider_screw_d);
 
         // nut slots
         hull() {
@@ -180,15 +189,10 @@ module linear_slider(cutout=0) {
             translate([-linear_slider_screw_gap/2, 0, linear_slider_nut_dp]) M3_hex_nut();
             translate([-linear_slider_screw_gap, 0, linear_slider_nut_dp]) M3_hex_nut();
         }
-
-
-
     }
-
-
-
-
 }
+
+// !linear_slider(1);
 
 
 module linear_bearing() {
@@ -199,14 +203,11 @@ module linear_bearing() {
 }
 
 
-module linear_rod() {
-    cylinder(h=linear_rod_l, d=linear_rod_d);
+module linear_rod(extra_d=0) {
+    cylinder(h=linear_rod_l, d=linear_rod_d + extra_d);
 }
 
 
-
-module mounting_board(){
-}
 
 module lcd_board() {
 }
@@ -214,9 +215,12 @@ module lcd_board() {
 module mainboard() {
 }
 
+// top_blade();
+
 module top_blade(cutout=0){
     translate([0, 0, blade_y_offset-blade_cut]) {
         if(cutout) translate([-10, 0, blade_notch_o + blade_notch_w/2]) rotate([0, 90, 0]) cylinder(h=blade_th+20, d=blade_notch_w);
+        translate([0, 0, blade_cut]) rotate([0, blade_over_angle, 0]) translate([0, 0, -blade_cut]) 
         difference() {
             union() {
                 translate([-blade_th, -blade_w/2, 0]) cube([blade_th, blade_w, top_blade_h]);
@@ -238,7 +242,7 @@ module top_blade(cutout=0){
 module bottom_blade(cutout=0){
     translate([-blade_overlap, 0, blade_y_offset + blade_cut + blade_overcut]) rotate([0, 180, 0]) {
         if(cutout) translate([-10, 0, blade_notch_o + blade_notch_w/2]) rotate([0, 90, 0]) cylinder(h=blade_th+20, d=blade_notch_w);
-        difference() {
+        translate([0, 0, blade_cut]) rotate([0, blade_over_angle, 0]) translate([0, 0, -blade_cut])  difference() {
             union() {
                 translate([-blade_th, -blade_w/2, 0]) cube([blade_th, blade_w, bottom_blade_h]);
                 translate([-blade_th, -bottom_blade_e_w/2, bottom_blade_e_w_h_o]) cube([blade_th, bottom_blade_e_w, bottom_blade_e_w_h]);
@@ -295,9 +299,42 @@ module endstop_switch(screw_len = 0){
     }
 }
 
-module z_axis_motor_mount(){
+// !extruder_motor_mount(1);
+
+module extruder_motor_mount(cutout=0){
+
+
+    // translate([0, 1.45, 36 + 11.72])
+    // import("extruderStepper_housing.3mf");
+
+
+    translate([71.125, -5, 3.5]) nema17();
+
+    if(cutout) color("blue") {
+        translate([41.4, 6.325, -1 - mounting_board_th]) plus(h=2*mounting_board_th, d=base_screwhole_d - .29);
+        translate([41.4, -16.325, -1 - mounting_board_th]) plus(h=2*mounting_board_th, d=base_screwhole_d - .29);
+        translate([100.85, 6.325, -1 - mounting_board_th]) plus(h=2*mounting_board_th, d=base_screwhole_d - .29);
+        translate([100.85, -16.325, -1 - mounting_board_th]) plus(h=2*mounting_board_th, d=base_screwhole_d - .29);
+    }
+}
+
+module z_axis_motor_mount(cutout=0){
     translate([0, blade_stepper_gap/2, 0]) nema17();
     translate([0, -blade_stepper_gap/2, 0]) nema17();
+
+    if(cutout) translate([0,0,-4]){
+
+        //middle screw holes
+        translate([bottom_blade_holder_screw_x, bottom_blade_holder_screw_gap/2, -1 - mounting_board_th]) plus(h=2*mounting_board_th, d=base_screwhole_d);
+        translate([bottom_blade_holder_screw_x, -bottom_blade_holder_screw_gap/2, -1 - mounting_board_th]) plus(h=2*mounting_board_th, d=base_screwhole_d);
+
+        //outside screw holes
+        translate([12.4, 78.725, -1 - mounting_board_th]) plus(h=2*mounting_board_th, d=base_screwhole_d);
+        translate([-11.6, 78.725, -1 - mounting_board_th]) plus(h=2*mounting_board_th, d=base_screwhole_d);
+
+        translate([12.4, -78.725, -1 - mounting_board_th]) plus(h=2*mounting_board_th, d=base_screwhole_d);
+        translate([-11.6, -78.725, -1 - mounting_board_th]) plus(h=2*mounting_board_th, d=base_screwhole_d);
+    }
 }
 
 module z_axis_motors(){
@@ -310,17 +347,17 @@ module z_axis_endstop_mount(screw_len=30){
     translate([0, 0, 0]) {
         difference() {
             union() {
-                translate([-endstop_l/2, -12, 0]) cube([endstop_l + 7, 6+4, endstop_z_o + endstop_h + endstop_e_h]);
-                translate([-nema_w/2 + endstop_l/2, -13, 0]) cube([nema_w, 15, 3]);
+                translate([-endstop_l/2 +2, -12, 0]) cube([endstop_l + 4, 6, endstop_z_o + endstop_h + endstop_e_h]);
+                translate([-nema_w/2 + endstop_l/2, -12, 0]) cube([nema_w, 11, 3]);
             }
-            translate([6, -endstop_w + 4, endstop_z_o]) endstop_switch(screw_len);
+            translate([6 -2, -endstop_w, endstop_z_o]) endstop_switch(screw_len);
             translate([endstop_l/2, blade_stepper_gap/2 - nema_w/2, -nema_h - 0.01]) z_axis_motors();
         
-            translate([-2, -7, endstop_z_o + endstop_h + endstop_e_h - endstop_spring_c_l]) endstop_spring();
+            // translate([-2, -7, endstop_z_o + endstop_h + endstop_e_h - endstop_spring_c_l]) endstop_spring();
 
         }
 
-       if(screw_len) %translate([6, -endstop_w +4, endstop_z_o]) endstop_switch();
+       if(screw_len) %translate([6 -2, -endstop_w, endstop_z_o]) endstop_switch();
     }
 }
 
@@ -347,25 +384,59 @@ module endstop_spring() {
 
 module top_blade_holder(){
     translate([0, 0, 91]) difference() {
-        translate([-9.3, -top_blade_holder_w/2, 0]) roundedRect(size=[top_blade_holder_l + top_blade_holder_r, top_blade_holder_w, top_blade_holder_h], radius=top_blade_holder_r);
-        translate([12.5, -top_blade_holder_w/2, -1]) cube([top_blade_holder_l, top_blade_holder_w + 2, top_blade_holder_h + 2]);
+        union(){
+            difference() {
+                translate([-9.3, -top_blade_holder_w/2, -30]) roundedRect(size=[top_blade_holder_l + top_blade_holder_r, top_blade_holder_w, top_blade_holder_h + 30], radius=top_blade_holder_r);
+                translate([12.5, -top_blade_holder_w/2 - 1, -31]) cube([top_blade_holder_l, top_blade_holder_w + 2, top_blade_holder_h + 32]);
+            }
+            hull() {
+                translate([0, linear_rod_gap/2, 55.7 - 91]) linear_slider();
+            }
+            hull() {
+                translate([0, -linear_rod_gap/2, 55.7 - 91]) linear_slider();
+            }
+        }
+
+        translate([-20, -top_blade_holder_w/2, -40]) cube([top_blade_holder_l +20, top_blade_holder_w + 2, 10]);
+
+        translate([-20, -top_blade_holder_w/2, top_blade_holder_h]) cube([top_blade_holder_l +20, top_blade_holder_w + 2, 10]);
+
+
+        translate([-20, linear_rod_gap/2 + linear_slider_base_w/2 - 4, -31]) cube([40, 20, 31]);
+        mirror([0,1,0]) translate([-20, linear_rod_gap/2 + linear_slider_base_w/2 - 4, -31]) cube([40, 20, 31]);
+
+
+
+
+
         // blade holder screws
         translate([1.6, top_blade_holder_screw_gap/2, -1]) cylinder(h=20, d=screwhole_d);
         translate([1.6, -top_blade_holder_screw_gap/2, -1]) cylinder(h=20, d=screwhole_d);
+
+
+        translate([0, linear_rod_gap/2, 55.7 - 91]) linear_slider(1);
+        translate([0, -linear_rod_gap/2, 55.7 - 91]) linear_slider(1);
+
     }
 
-    tbh_mid_w = top_blade_holder_screw_gap - 6;
+
+    // hull() translate([0, linear_rod_gap/2, 55.7]) linear_slider(0);
+
+    // tbh_mid_w = top_blade_holder_screw_gap - 6;
 
     //pyramid part
-    hull() {
-        translate([-9.3, -tbh_mid_w/2, 91]) cube([top_blade_holder_l - 0.01, tbh_mid_w, top_blade_holder_h]);
-        translate([0, 0, 55 + blade_holder_h]) translate([-blade_holder_l/2, -blade_holder_w/2, 0]) cube([blade_holder_l, blade_holder_w, blade_holder_h]);
-    }
+    // hull() {
+    //     translate([-9.3, -tbh_mid_w/2, 91]) cube([top_blade_holder_l - 0.01, tbh_mid_w, top_blade_holder_h]);
+    //     translate([0, 0, 55 + blade_holder_h]) translate([-blade_holder_l/2, -blade_holder_w/2, 0]) cube([blade_holder_l, blade_holder_w, blade_holder_h]);
+    // }
 
     difference() {
-        translate([-blade_holder_l/2, -blade_holder_w/2, 55]) cube([blade_holder_l, blade_holder_w, blade_holder_h]);
+        translate([-blade_holder_l/2, -blade_holder_w/2 + 1/2, 55 - 0.4]) cube([blade_holder_l, blade_holder_w -1, blade_holder_h]);
         top_blade(1);
-        scale([1.1, 1, 1]) translate([0, 0, blade_overcut + 0.1]) bottom_blade(1);
+        scale([1.1, 1, 1]) translate([0, 0, blade_overcut + 0.1 + .2]) bottom_blade();
+
+        translate([-blade_th * 1.2, -blade_holder_w/2 -1, 50]) cube([2.4*blade_th, blade_holder_w + 2, 5]);
+
 
         translate([0, -10, 55 - 0.01]) rotate([0, -15, 0]) translate([0, 0, -1]) cube([.2, 20, 6]);
     }
@@ -374,28 +445,45 @@ module top_blade_holder(){
 module bottom_blade_holder(){
     difference(){
         translate([-blade_holder_l/2, -blade_holder_w/2, 35.04]) cube([blade_holder_l, blade_holder_w, blade_holder_h]);
-        scale([1.1, 1, 1]) translate([0, 0, -blade_overcut - 0.1]) top_blade(1);
+        scale([1.1, 1, 1]) translate([0, 0, -blade_overcut - 0.1 -.2]) top_blade();
+
+        translate([-blade_th * 1.2, -blade_holder_w/2 -1, 50]) cube([2.4*blade_th, blade_holder_w + 2, 10]);
+
         bottom_blade(1);
 
         translate([0, -10, 50.04]) rotate([0, 180-15, 0]) translate([0, 0, -1]) cube([.2, 20, 6]);
     }
     difference(){
-        translate([-blade_holder_l/2, -bottom_blade_holder_w/2, 3.5]) roundedRect(size=[bottom_blade_holder_l + bottom_blade_holder_r*2, bottom_blade_holder_w, bottom_blade_holder_h], radius=bottom_blade_holder_r);
-        translate([bottom_blade_holder_l - blade_holder_l/2, -bottom_blade_holder_w/2, 3.5 -1]) cube([bottom_blade_holder_l, bottom_blade_holder_w + 2, bottom_blade_holder_h + 2]);
+        translate([-blade_holder_l/2 - 5, -bottom_blade_holder_w/2, 3.5]) roundedRect(size=[bottom_blade_holder_l + bottom_blade_holder_r*2, bottom_blade_holder_w, bottom_blade_holder_h + 35 + 1], radius=bottom_blade_holder_r);
+        translate([bottom_blade_holder_l - blade_holder_l/2, -bottom_blade_holder_w/2, 3.5 -1]) cube([bottom_blade_holder_l, bottom_blade_holder_w + 2, bottom_blade_holder_h + 42]);
+
+        translate([blade_holder_l, -bottom_blade_holder_w/2 - 1, 3.5 + bottom_blade_holder_h]) cube([bottom_blade_holder_l, bottom_blade_holder_w/2 - 7 + 1, bottom_blade_holder_h + 52]);
+        translate([blade_holder_l, 7, 3.5 + bottom_blade_holder_h]) cube([bottom_blade_holder_l, bottom_blade_holder_w/2 - 7 + 1, bottom_blade_holder_h + 52]);
+
+        translate([0, linear_rod_gap/2, 0]) linear_rod();
+        translate([0, -linear_rod_gap/2, 0]) linear_rod();
+
         // blade holder screws
         translate([bottom_blade_holder_screw_x, bottom_blade_holder_screw_gap/2, -1]) cylinder(h=20, d=base_screwhole_d);
         translate([bottom_blade_holder_screw_x, -bottom_blade_holder_screw_gap/2, -1]) cylinder(h=20, d=base_screwhole_d);
+
+
+        translate([71.15 -0, -5, 40 + 1.2]) rotate([0,0,90]) extruder_combined(1);
+
+        //magnet spot
+        translate([-blade_holder_l/2 - 0.1 - 5, 0, 16.5 + 3.5]) rotate([0, 90, 0]) cylinder(h=2.1, d=10.2);
+
     }
 
-    bbh_mid_w = bottom_blade_holder_screw_gap - 8;
+    // bbh_mid_w = bottom_blade_holder_screw_gap - 8;
     //pyramid part
-    difference() {
-        hull() {
-            translate([-blade_holder_l/2 - 0.01, -bbh_mid_w/2, 3.5]) cube([bottom_blade_holder_l, bbh_mid_w, top_blade_holder_h]);
-            translate([0, 0, 35.1]) rotate([180, 0, 0]) translate([-blade_holder_l/2, -blade_holder_w/2, 0]) cube([blade_holder_l, blade_holder_w, blade_holder_h]);
-        }
-        translate([-blade_holder_l/2 - 0.1, 0, 16.5 + 3.5]) rotate([0, 90, 0]) cylinder(h=2.1, d=10.2);
-    }
+    // difference() {
+    //     hull() {
+    //         translate([-blade_holder_l/2 - 0.01, -bbh_mid_w/2, 3.5]) cube([bottom_blade_holder_l, bbh_mid_w, top_blade_holder_h]);
+    //         translate([0, 0, 35.1]) rotate([180, 0, 0]) translate([-blade_holder_l/2, -blade_holder_w/2, 0]) cube([blade_holder_l, blade_holder_w, blade_holder_h]);
+    //     }
+    //     translate([-blade_holder_l/2 - 0.1, 0, 16.5 + 3.5]) rotate([0, 90, 0]) cylinder(h=2.1, d=10.2);
+    // }
 }
 
 module leadscrew_nut(){
@@ -422,9 +510,16 @@ module leadscrew_nut(){
 module z_axis_attachment(){
     difference() {
         hull() {
-            translate([0, blade_stepper_gap/2, 0]) cylinder(h=attachment_h, d=attachment_w, $fn=150);
-            translate([0, -blade_stepper_gap/2, 0]) cylinder(h=attachment_h, d=attachment_w, $fn=150);
+            translate([0, blade_stepper_gap/2 + 16, 0]) cylinder(h=attachment_h, d=attachment_w, $fn=150);
+            translate([0, -blade_stepper_gap/2 - 16, 0]) cylinder(h=attachment_h, d=attachment_w, $fn=150);
         }
+
+        translate([0, linear_rod_gap/2, 55.7 - 91]) linear_slider(1);
+        translate([0, -linear_rod_gap/2, 55.7 - 91]) linear_slider(1);
+
+        translate([0, linear_rod_gap/2, 0]) linear_rod(2);
+        translate([0, -linear_rod_gap/2, 0]) linear_rod(2);
+
 
 
         //blade holder
@@ -465,7 +560,7 @@ module container(container_l = container_l) {
     }
 }
 
-module spool_holder_base(){
+module spool_holder_base(cutout=0){
     //base
     difference() {
         hull() {
@@ -495,6 +590,10 @@ module spool_holder_base(){
         translate([10.5, 43.2, -1]) cylinder(h=2*spool_base_th + 10, d=base_screwhole_d);
         translate([28.8, 19.6, -1]) cylinder(h=2*spool_base_th + 10, d=base_screwhole_d);
     }
+    if(cutout){
+        translate([10.5, 43.2, -1 - mounting_board_th]) plus(h=2*mounting_board_th, d=base_screwhole_d);
+        translate([28.8, 19.6, -1 - mounting_board_th]) plus(h=2*mounting_board_th, d=base_screwhole_d);
+    }
 }
 
 module spool_cylinder(){
@@ -522,38 +621,82 @@ module spool_cap() {
     }
 }
 
+module mounting_board(){
+    difference() {
+        // current size
+        translate([-container_l - 10, -250, -mounting_board_th]) cube([530, 500, mounting_board_th]);
+
+
+        translate([0, 0, 4]) z_axis_motor_mount(1);
+
+        extruder_motor_mount(1);
+
+        translate([136 + 140, -27, 0.01]) spool_holder_base(1);
+
+    }
+}
+
+module plus(h, d, w=1){
+    translate([-w/2, -d/2, 0]) cube([w, d, h]);
+    translate([-d/2, -w/2, 0]) cube([d, w, h]);
+}
+
 /* #################################################### */
+
+
+translate([0, 0, anim_height]) {
 
 translate([0, 0, 91 + 20]) z_axis_attachment();
 
-// z_axis_endstop_mount();
-
-// mirror([0,1,0]) z_axis_endstop_mount(0);
+%translate([0, linear_rod_gap/2, 55.7]) linear_slider(0);
+%translate([0, -linear_rod_gap/2, 55.7]) linear_slider(0);
 
 top_blade_holder();
 
 %top_blade();
+
+}
+
 %bottom_blade();
 
 bottom_blade_holder();
 
 
+%translate([0, linear_rod_gap/2, 0]) linear_rod();
+%translate([0, -linear_rod_gap/2, 0]) linear_rod();
+
+// z_axis_endstop_mount();
+// mirror([0,1,0]) z_axis_endstop_mount(0);
+
+translate([0, blade_stepper_gap, 0]) z_axis_endstop_mount(0);
+translate([0, -blade_stepper_gap, 0]) mirror([0,1,0]) z_axis_endstop_mount();
+
+
+
+
 // container(container_small_l);
 // translate([-container_small_l, 0, 0])
-// container();
+translate([-5, 0, 0]) container();
 
 
 
-translate([136, -27, 0]){
+translate([71.15, -5, 40 + 1.2]) rotate([0,0,90]) extruder_combined(); 
+
+
+
+translate([130, 0, 40 -1]) wire_straightener_aligned();
+// translate([130, 0, 40 -1]) wire_straightener_aligned(cutout=20, mounting_nut_dp=10);
+
+
+
+translate([136 + 140, -27, 0]){
     spool_cylinder();
     spool_cap();
     spool_holder_base();
 }
 
-include <extruder/compact_extruder_mount.scad>
-translate([71.15, -5, 40 + 1.2]) rotate([0,0,90]) extruder_combined(); 
-
-
+// projection()
+// mounting_board();
 
 /******************************
  * original models
