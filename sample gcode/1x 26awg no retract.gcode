@@ -1,6 +1,6 @@
 ; 26 awg wire
-; 1mm strip, 100 mm center, 5mm strip
-; cuts 4 wires
+; 1mm strip, 100 mm center, 3.5mm strip
+
 
 
 
@@ -19,7 +19,7 @@ M83 ; extruder relative mode
 
 G28 Z; home Z
 
-G1 Z20 F720 ; Z axis to 20mm, need to clear wire diameter (should be by a bunch)
+G1 Z40 F720 ; Z axis to 20mm, need to clear wire diameter (should be by a bunch)
 G92 E0 ; set E axis to 0
 
 M221 S96 ; set extruder override percentage
@@ -29,15 +29,16 @@ G90 ; use absolute coordinates
 M83 ; use relative distances for extrusion
 
 
+
 ;; cut a wire
 G1 E1 F4000  ; 1mm
-G1 Z2.1 ; strip
-G1 Z12 ; lift
+G1 Z0.2 ; strip
+G1 Z10 ; lift
 G1 E100 ; 100mm
-G1 Z2.1 ; strip
-G1 Z12 ; lift
+G1 Z0.3 ; strip
+G1 Z10 ; lift
 G1 E3.5   ; 3.5mm
-G1 Z1 ; cut
+G1 Z-1 ; cut
 G1 Z12 ; lift
 G92 E0 ; set E axis to 0
 

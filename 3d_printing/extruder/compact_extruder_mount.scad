@@ -1,4 +1,5 @@
 // Avoid openscad artefacts in preview
+use <OpenSCAD-common.scad>
 epsilon = 0.01 * 1;
 
 $fn=100;
@@ -77,9 +78,9 @@ top_height = 1*4.9;
 // Stepper (nema 17) dimensions
 nema17_width = 42.3 * 1;
 nema17_hole_offsets = [
-	[-15.5, -15.5, 1.5],
-	[-15.5,  15.5, 1.5],
-	[ 15.5, -15.5, 1.5],
+	[-15.5, -15.5, 2.5],
+	[-15.5,  15.5, 2.5],
+	[ 15.5, -15.5, 2.5],
 	[ 15.5,  15.5, 1.5 + base_height]
 ];
 
@@ -419,11 +420,10 @@ module filament_tunnel()
                 //bottom nut slot
                 // translate([filament_diameter + 3, -nema17_width / 2 + 4, 5 - tensioner_bolt_gap/2])
                 //     cube([2.5 + 3 * extra_radius, 5.5 + 2.5 * extra_radius, 10 + tensioner_bolt_gap/2], center = true);
-                translate([filament_diameter + 2, -nema17_width / 2 + 4, -tensioner_bolt_gap/2])
+                translate([filament_diameter + .5, -nema17_width / 2 + 4, .25 -tensioner_bolt_gap/2])
                 hull() {
-                    rotate([0, 90, 0]) rotate([0, 0, 90]) cylinder(r = 3.15 + 2.5 * extra_radius - 0.25, h = 2.5 + 3 * extra_radius, center = true, $fn = 6);
-                    translate([0, -20, 0]) rotate([0, 90, 0]) rotate([0, 0, 90]) cylinder(r = 3.15 + 2.5 * extra_radius - .1, h = 2.5 + 3 * extra_radius, center = true, $fn = 6);
-                
+                    rotate([0, 90, 0]) rotate([0, 0, 90]) M3_hex_nut();//cylinder(r = 3.15 + 2.5 * extra_radius - 0.25, h = 2.5 + 3 * extra_radius, center = true, $fn = 6);
+                    translate([0, -20, 0]) rotate([0, 90, 0]) rotate([0, 0, 90]) M3_hex_nut();//cylinder(r = 3.15 + 2.5 * extra_radius - .1, h = 2.5 + 3 * extra_radius, center = true, $fn = 6);
                 }
 
 
@@ -434,10 +434,10 @@ module filament_tunnel()
 
 
                 // //top nut slot
-                translate([filament_diameter + 1, -nema17_width / 2 + 4, tensioner_bolt_gap/2 + 2*m3_radius])
+                translate([filament_diameter, -nema17_width / 2 + 4, tensioner_bolt_gap/2 + 2*m3_radius])
                 hull() {
-                    rotate([0, 90, 0]) cylinder(r = 3.15 + 2.5 * extra_radius - .25, h = 2.5 + 3 * extra_radius, center = true, $fn = 6);
-                    translate([0, 0, 20]) rotate([0, 90, 0]) cylinder(r = 3.15 + 2.5 * extra_radius -.1, h = 2.5 + 3 * extra_radius, center = true, $fn = 6);
+                    rotate([0, 90, 0]) M3_hex_nut();//cylinder(r = 3.15 + 2.5 * extra_radius - .25, h = 2.5 + 3 * extra_radius, center = true, $fn = 6);
+                    translate([0, 0, 20]) rotate([0, 90, 0]) M3_hex_nut();//cylinder(r = 3.15 + 2.5 * extra_radius -.1, h = 2.5 + 3 * extra_radius, center = true, $fn = 6);
 
                 }
 
@@ -507,9 +507,17 @@ module filament_tunnel()
                         cylinder(r = filament_diameter / 2 + 2 * extra_radius,
                             h = length + 2 * epsilon + 100, center = true, $fn = 50);
 
+
+                translate([-outlet_dia, length / 2 + epsilon + outlet_base_len + 1.5, -height / 2 + filament_offset[2] - base_height - .4])
+                    cube([2*outlet_dia, outlet_tip_len +1, outlet_dia]);
+                    // #rotate([-90, 0, 0]) cylinder(r1 = outlet_dia/2 + 1.5, r2= filament_diameter/2 +1, h = outlet_tip_len);
+
+
                 // screw head inlet
-                translate(nema17_hole_offsets[2] - [filament_offset[0], 0, height / 2 + 1.5])
-                    sphere(r = m3_head_radius, $fn = 50);
+                translate(nema17_hole_offsets[2] - [filament_offset[0], 0, height / 2 + 1.5]) {
+                        sphere(r = m3_head_radius, $fn = 50);
+                        translate([0, 0, -10]) cylinder(h=10, r = m3_head_radius);
+                }
             }
 
             //hinge support

@@ -13,6 +13,8 @@ n_bearings = 5;
 
 bearing_gap = base_w/ (n_bearings+1);
 
+// echo(bearing_gap/3);
+
 bearing_mount_h = 10;
 
 
@@ -50,8 +52,8 @@ slider_pos = 15 + 1*2;
 //624zz v bearing
 module 624_bearing(){
     %cylinder(h=bearing_h/2 - bearing_middle_h/2, d=bearing_d);
-    %translate([0, 0, bearing_h/2 - bearing_middle_h/2]) cylinder(h=bearing_middle_h/2, d1=bearing_d, d2=bearing_middle_d);
-    %translate([0, 0, bearing_h/2]) cylinder(h=bearing_middle_h/2, d1=bearing_middle_d, d2=bearing_d);
+    %translate([0, 0, bearing_h/2 - bearing_middle_h/2 -.01]) cylinder(h=bearing_middle_h/2, d1=bearing_d, d2=bearing_middle_d);
+    %translate([0, 0, bearing_h/2 -.01]) cylinder(h=bearing_middle_h/2, d1=bearing_middle_d, d2=bearing_d);
 
 
     %translate([0, 0, bearing_h/2 + bearing_middle_h/2]) cylinder(h=bearing_h/2 - bearing_middle_h/2, d=bearing_d);
@@ -100,20 +102,22 @@ module wire_straightener(cutout=0, mounting_nut_dp=10){
             translate([2*bearing_gap, bearing_mount_h, 0]) cylinder(h=base_th + bearing_hub_h, d=bearing_hub_d);
             translate([4*bearing_gap, bearing_mount_h, 0]) cylinder(h=base_th + bearing_hub_h, d=bearing_hub_d);
             cube([base_w, 2, base_th +2]);
+
+            translate([bearing_gap/3, bearing_mount_h, 0]) cylinder(h=base_th + bearing_hub_h, d=bearing_hub_d);
         }
 
         // make a smaller test print
         // translate([2.5*bearing_gap, -1, -1]) cube([2*base_w, 2*base_h, 2*base_th]);
 
         //bearing mounts
-        translate([2*bearing_gap, bearing_mount_h, base_th + bearing_hub_h]) 624_bearing();
+        // if(cutout==0) translate([2*bearing_gap, bearing_mount_h, base_th + bearing_hub_h]) 624_bearing();
         translate([2*bearing_gap, bearing_mount_h, -1]) cylinder(h=base_th + 2, d=m4_hole_d);
         translate([2*bearing_gap, 0, 7]) hull() {
             translate([0, -bearing_mount_h, 0])m4_nut(3.2);
             translate([0, bearing_mount_h, 0]) m4_nut(3.2);
         }
 
-        translate([4*bearing_gap, bearing_mount_h, base_th + bearing_hub_h]) 624_bearing();
+        if(cutout==0) translate([4*bearing_gap, bearing_mount_h, base_th + bearing_hub_h]) 624_bearing();
         translate([4*bearing_gap, bearing_mount_h, -1]) cylinder(h=base_th + 2, d=m4_hole_d);
         translate([4*bearing_gap, 0, 7]) hull() {
             translate([0, -bearing_mount_h, 0])m4_nut(3.2);
@@ -122,6 +126,7 @@ module wire_straightener(cutout=0, mounting_nut_dp=10){
 
 
         //bearing mount sliders
+        if(cutout==0) {
         translate([1*bearing_gap, base_h - 4, base_th - 6]) rotate([90, 0, 0]) hull() {
             m4_nut();
             translate([0, base_th, 0]) m4_nut();
@@ -151,7 +156,7 @@ module wire_straightener(cutout=0, mounting_nut_dp=10){
 
         translate([5*bearing_gap, -slider_h - 9.5, base_th - slider_d + 0.01]) slider();
         translate([5*bearing_gap, slider_pos, base_th - slider_d + 0.01]) %slider(0);
-
+        }
 
 
         //mounting screws
@@ -215,11 +220,55 @@ module wire_straightener(cutout=0, mounting_nut_dp=10){
     }
 }
 
-wire_straightener();
+// wire_straightener();
 
 // translate([2*bearing_gap - 5, bearing_mount_h - 5, 10.2]) cube([10, 10, 0.2]);
 // translate([4*bearing_gap - 5, bearing_mount_h - 5, 10.2]) cube([10, 10, 0.2]);
 
 module wire_straightener_aligned(cutout=0, mounting_nut_dp=10){
     translate([base_w, -base_th -bearing_h/2 -bearing_hub_h, 0]) rotate([90, 0, 180]) wire_straightener(cutout, mounting_nut_dp);
+}
+
+
+difference() {
+    translate([bearing_gap/3, bearing_mount_h, 0.01]) cylinder(h=base_th + bearing_hub_h, d=bearing_hub_d);
+    wire_straightener();
+    translate([bearing_gap/3, 10, -1]) {
+            
+            cylinder(h=base_th+2, d=m4_hole_d+.01);
+        }
+        translate([bearing_gap/3, bearing_mount_h, base_th + bearing_hub_h]) 624_bearing();
+}
+
+
+difference() {
+    union() {
+        translate([bearing_gap/3, base_h - 10, base_th])  {
+            translate([0, 0,  - 4]) cylinder(h=4 + 1, d=7.2);
+            cylinder(h=bearing_hub_h + bearing_h + 5, d=7.2 + 2.5);
+        }
+
+        hull() {
+            translate([bearing_gap/3, 10, base_th + bearing_hub_h + bearing_h +1]) cylinder(h=4, d=7.2 + 2.5);
+            translate([bearing_gap/3, base_h - 10, base_th + bearing_hub_h + bearing_h +1]) cylinder(h=4, d=7.2 + 2.5);
+        }
+    }
+    translate([bearing_gap/3, 10, base_th + bearing_hub_h + bearing_h -0.01]) cylinder(h=4 + 1.02, d=7.2);
+
+    // for (i = [0:.1:20]) {
+    //     translate([bearing_gap/3, base_h - 10, base_th + bearing_hub_h + bearing_h -0.01]) rotate([0, 0,i]) translate([0, -base_h + 20, 0]) cylinder(h=4 + 1.02, d=7.2);
+    // }
+
+    for (i = [0:1:20]) {
+        hull() {
+            translate([bearing_gap/3, base_h - 10, base_th + bearing_hub_h + bearing_h -0.01]) rotate([0, 0,i]) translate([0, -base_h + 20, 0]) cylinder(h=4 + 1.02, d=7.2);
+            translate([bearing_gap/3, base_h - 10, base_th + bearing_hub_h + bearing_h -0.01]) rotate([0, 0,i+1]) translate([0, -base_h + 20, 0]) cylinder(h=4 + 1.02, d=7.2);
+        }
+    }
+
+    translate([bearing_gap/3, base_h - 10, base_th + bearing_hub_h + bearing_h -0.01]) cylinder(h=4 + 1.02, d=7.2);
+
+    translate([bearing_gap/3, base_h - 10, 0]) cylinder(h=base_th + bearing_hub_h + bearing_h + 20, d=m4_hole_d);
+
+
 }
